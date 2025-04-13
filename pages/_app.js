@@ -5,7 +5,9 @@ import "../styles/global.css";
 import { Provider } from "react-redux";
 import request from "../utils/request";
 import createStore from "../store";
+import router from "next/router";
 import * as types from "../store/action-types";
+
 function getStore(initialState) {
   if (typeof window === "undefined") {
     return createStore(initialState); //如果是服务器端,每次都返回新的仓库
@@ -26,6 +28,7 @@ class LayoutApp extends App {
 
     // 10. 在客户端下, 通过服务器返回的状态创建客户端的状态仓库
     this.store = getStore(props.initialState);
+    this.state = { loading: false }; // loading 状态
     console.log("LayoutApp constructor");
   }
   static async getInitialProps({ Component, ctx }) {
@@ -53,7 +56,7 @@ class LayoutApp extends App {
     }
     let pageProps = {};
     if (Component.getInitialProps)
-      pageProps = await Component.getInitialProps(ctx);
+      pageProps = await Component.getInitialProps(ctx, store);
     const props = { pageProps };
 
     // 3. 在服务器环境中，把仓库的最新状态放在了属性对象的 initialState 属性中
@@ -64,6 +67,22 @@ class LayoutApp extends App {
 
     // 返回 props 属性对象, 这里将会成为 LayoutApp 组件的 props 属性
     return props;
+  }
+
+  componentDidMount() {
+    console.log("LayoutApp componentDidMount");
+    this.routeChangeStart = (url) => {
+      this.setState({ loading: true });
+    };
+    router.events.on("routeChangeStart", this.routeChangeStart);
+    this.routeChangeComplete = (url) => {
+      this.setState({ loading: false });
+    };
+    router.events.on("routeChangeComplete", this.routeChangeComplete);
+  }
+  componentWillUnmount() {
+    router.events.off("routeChangeStart", this.routeChangeStart);
+    router.events.off("routeChangeComplete", this.routeChangeComplete);
   }
   render() {
     console.log("LayoutApp render");
@@ -105,7 +124,12 @@ class LayoutApp extends App {
             </li>
           </ul>
         </header>
-        <Component {...pageProps} />
+        {/* <Component {...pageProps} /> */}
+        {this.state.loading ? (
+          <div>切换中......</div>
+        ) : (
+          <Component {...pageProps} />
+        )}
         <footer style={{ textAlign: "center" }}>@copyright Huy</footer>
       </Provider>
     );
