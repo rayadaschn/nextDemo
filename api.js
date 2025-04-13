@@ -46,7 +46,6 @@ app.get("/api/users/:id", (req, res) => {
 // 登录
 app.post("/api/login", (req, res) => {
   const user = req.body;
-  console.log("🚀 ~ app.post ~ user:", user);
   req.session.user = user;
   res.json({ success: true, data: user });
 });
@@ -61,12 +60,25 @@ app.post("/api/logout", (req, res) => {
 // 有效性校验
 app.post("/api/validate", (req, res) => {
   const user = req.session?.user;
-  console.log("🚀 ~ app.post ~ req.session:", user);
-
   if (user) {
     res.json({ success: true, data: user });
   } else {
     res.json({ success: false, error: "用户未登录" });
+  }
+});
+
+app.get("/api/validate", (req, res) => {
+  const user = req.session.user;
+  if (user) {
+    res.json({
+      success: true,
+      data: user,
+    });
+  } else {
+    res.json({
+      success: false,
+      error: `用户未登录`,
+    });
   }
 });
 
