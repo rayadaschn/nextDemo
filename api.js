@@ -73,8 +73,12 @@ app.post("/api/validate", (req, res) => {
 // 注册
 app.post("/api/register", (req, res) => {
   const user = req.body;
-  user.id = users.length + 1;
+  user.id = Date.now() + 1;
+  user.createdAt = new Date().toISOString();
+
   users.push(user);
+
+  req.session.user = user;
   res.json({ success: true, data: user });
 });
 
