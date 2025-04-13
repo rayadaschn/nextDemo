@@ -1,14 +1,28 @@
 import UserLayout from "./";
 import React from "react";
+import router from "next/router";
+import request from "utils/request";
+
 function UserAdd() {
-  let nameRef = React.useRef();
-  let passwordRef = React.useRef();
-  let handleSubmit = (event) => {
+  const nameRef = React.useRef();
+  const passwordRef = React.useRef();
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    let user = {
+    const user = {
       name: nameRef.current.value,
       password: passwordRef.current.value,
     };
+
+    const response = await request
+      .post("/api/register", user)
+      .then((response) => response.data);
+    if (response.success) {
+      // 跳转到用户列表页面
+      router.push("/user/list");
+    } else {
+      alert(response.message);
+    }
   };
   return (
     <UserLayout>
